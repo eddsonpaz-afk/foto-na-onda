@@ -1,22 +1,19 @@
-# Foto na Onda V3.1 — mockup corrigido
+# Foto na Onda V3.2 — novo mockup oficial
 
-Correções desta versão:
+Esta versão mantém toda a lógica que já estava funcionando:
 
-- removido o mockup antigo que continha a logo da CBS;
-- aplicado o mockup aprovado da Onda da Produtividade;
-- mantidas apenas Waves Plus + ExpoConstruir;
-- mantida toda a lógica que já estava funcionando:
-  - câmera traseira nativa;
-  - galeria;
-  - arrastar;
-  - aumentar;
-  - diminuir;
-  - centralizar;
-  - cadastro;
-  - Drive;
-  - planilha;
-  - WhatsApp;
-  - download.
+- câmera traseira nativa com `capture="environment"`;
+- escolha pela galeria;
+- arrastar a foto;
+- aumentar e diminuir;
+- centralizar;
+- cadastro;
+- salvamento no Google Drive;
+- registro na Planilha Google;
+- compartilhamento;
+- download.
 
-Mockup usado:
-`1VWYbf1gbgett3nk037d9THctsQkr5pyz`
+A única alteração é o mockup oficial carregado do Google Drive.
+
+Novo mockup:
+`1rQOmjKpl6xGzLOYTZJRZSI8qjZf9HVBZ`
