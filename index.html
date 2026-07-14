@@ -1,14 +1,113 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#04101f" />
-    <meta name="description" content="Foto na Onda da Produtividade" />
-    <title>Foto na Onda</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#03101f">
+  <title>Foto na Onda</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main id="app">
+    <section class="screen active" data-screen="splash">
+      <div class="brand-row">
+        <span class="brand waves">WAVES PLUS</span>
+        <span class="brand expo">EXPOCONSTRUIR</span>
+        <span class="brand cbs">CBS</span>
+      </div>
+      <div class="wave-mark"></div>
+      <div class="bottom-copy">
+        <p class="eyebrow">EXPOCONSTRUIR 2026</p>
+        <h1>FOTO NA <strong>ONDA</strong><span>DA PRODUTIVIDADE</span></h1>
+        <p>Entre na onda, tire sua foto e mostre que você faz parte do movimento.</p>
+        <button class="primary" data-go="cadastro">COMEÇAR</button>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="cadastro">
+      <div class="brand-row">
+        <span class="brand waves">WAVES PLUS</span>
+        <span class="brand expo">EXPOCONSTRUIR</span>
+        <span class="brand cbs">CBS</span>
+      </div>
+      <p class="eyebrow">CADASTRO RÁPIDO</p>
+      <h2>Entre na Onda</h2>
+      <p>Preencha seus dados para continuar.</p>
+
+      <form id="leadForm">
+        <input name="nome" placeholder="Nome completo" required>
+        <input name="whatsapp" placeholder="WhatsApp" inputmode="tel" required>
+        <input name="email" placeholder="E-mail" inputmode="email">
+        <input name="empresa" placeholder="Empresa">
+        <input name="cidade" placeholder="Cidade" required>
+        <input name="estado" placeholder="Estado" required>
+        <label class="checkline">
+          <input type="checkbox" name="lgpd" required>
+          <span>Autorizo o uso dos meus dados para esta experiência.</span>
+        </label>
+        <button class="primary" type="submit">ENTRAR NA ONDA</button>
+      </form>
+    </section>
+
+    <section class="screen" data-screen="moldura">
+      <div class="brand-row">
+        <span class="brand waves">WAVES PLUS</span>
+        <span class="brand expo">EXPOCONSTRUIR</span>
+        <span class="brand cbs">CBS</span>
+      </div>
+      <p class="eyebrow">MOLDURA OFICIAL</p>
+      <h2>Sua foto vai ficar assim</h2>
+      <p>A moldura será aplicada automaticamente.</p>
+      <div class="frame-preview">
+        <img src="./assets/moldura-oficial.png" alt="Moldura oficial">
+      </div>
+      <button class="primary" data-go="camera">CONTINUAR</button>
+    </section>
+
+    <section class="screen camera-screen" data-screen="camera">
+      <div class="camera-stage">
+        <video id="video" autoplay muted playsinline></video>
+        <img class="overlay" src="./assets/moldura-oficial.png" alt="">
+        <div id="cameraError" class="camera-error hidden"></div>
+      </div>
+      <p class="hint">Centralize o rosto e sorria 😄</p>
+      <button id="captureBtn" class="capture" aria-label="Tirar foto"></button>
+      <button class="text-button" data-go="moldura">Voltar</button>
+      <canvas id="canvas" hidden></canvas>
+    </section>
+
+    <section class="screen center" data-screen="processando">
+      <div class="spinner"></div>
+      <h2>Preparando sua foto...</h2>
+      <p>Estamos aplicando a moldura oficial.</p>
+      <div class="progress"><span></span></div>
+    </section>
+
+    <section class="screen" data-screen="resultado">
+      <p class="eyebrow">FOTO PRONTA</p>
+      <h2>Sua foto ficou pronta</h2>
+      <p>Agora é só baixar ou compartilhar.</p>
+      <div class="result">
+        <img id="resultImage" alt="Foto final">
+      </div>
+      <div class="button-grid">
+        <button id="downloadBtn" class="primary">BAIXAR</button>
+        <button id="shareBtn" class="primary">COMPARTILHAR</button>
+      </div>
+      <button class="secondary" data-go="camera">TIRAR OUTRA</button>
+      <button class="text-button" data-go="obrigado">FINALIZAR</button>
+    </section>
+
+    <section class="screen center" data-screen="obrigado">
+      <div class="ok">✓</div>
+      <p class="eyebrow">TUDO CERTO</p>
+      <h2>Obrigado!</h2>
+      <p>Você faz parte da Onda da Produtividade.</p>
+      <strong>@wavesplusoficial</strong>
+      <button class="primary" id="restartBtn">VOLTAR AO INÍCIO</button>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
 </html>
