@@ -1,4 +1,4 @@
-const FILE_ID = "1PCPaYZ-DS5ieMciPBp4qyHGzTkEinxrC";
+const FILE_ID = "1VWYbf1gbgett3nk037d9THctsQkr5pyz";
 
 export async function GET() {
   const url = `https://drive.google.com/uc?export=download&id=${FILE_ID}`;
