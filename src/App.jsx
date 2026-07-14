@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   Camera,
@@ -11,9 +11,10 @@ import {
   Share2,
   Smartphone,
   User,
+  Building2,
 } from "lucide-react";
 
-const initialForm = {
+const FORM_INITIAL = {
   nome: "",
   whatsapp: "",
   email: "",
@@ -23,382 +24,326 @@ const initialForm = {
   lgpd: false,
 };
 
-function App() {
+const FRAME_URL = "/moldura-oficial.png";
+
+export default function App() {
   const [screen, setScreen] = useState("splash");
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState(FORM_INITIAL);
+  const [photo, setPhoto] = useState("");
+  const [finalPhoto, setFinalPhoto] = useState("");
+  const [cameraError, setCameraError] = useState("");
+
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    if (screen === "camera") startCamera();
+    else stopCamera();
+
+    return stopCamera;
+  }, [screen]);
 
   function updateField(event) {
-    const { name, value, type, checked } = event.target;
-
+    const { name, value, checked, type } = event.target;
     setForm((current) => ({
       ...current,
       [name]: type === "checkbox" ? checked : value,
     }));
   }
 
-  function submitForm(event) {
+  function submitRegistration(event) {
     event.preventDefault();
-
     if (!form.lgpd) {
-      alert("Você precisa aceitar a política de privacidade.");
+      alert("Marque a autorização de uso dos dados para continuar.");
+      return;
+    }
+    localStorage.setItem("fotoNaOndaLead", JSON.stringify(form));
+    setScreen("moldura");
+  }
+
+  async function startCamera() {
+    setCameraError("");
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user", width: { ideal: 1080 }, height: { ideal: 1920 } },
+        audio: false,
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+    } catch {
+      setCameraError(
+        "Não consegui abrir a câmera. Toque no cadeado do navegador e permita o uso da câmera."
+      );
+    }
+  }
+
+  function stopCamera() {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+  }
+
+  async function capturePhoto() {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas || !video.videoWidth) return;
+
+    const outputWidth = 1080;
+    const outputHeight = 1920;
+    canvas.width = outputWidth;
+    canvas.height = outputHeight;
+
+    const ctx = canvas.getContext("2d");
+    const videoRatio = video.videoWidth / video.videoHeight;
+    const outputRatio = outputWidth / outputHeight;
+
+    let sx = 0, sy = 0, sw = video.videoWidth, sh = video.videoHeight;
+
+    if (videoRatio > outputRatio) {
+      sw = video.videoHeight * outputRatio;
+      sx = (video.videoWidth - sw) / 2;
+    } else {
+      sh = video.videoWidth / outputRatio;
+      sy = (video.videoHeight - sh) / 2;
+    }
+
+    ctx.save();
+    ctx.translate(outputWidth, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, outputWidth, outputHeight);
+    ctx.restore();
+
+    const raw = canvas.toDataURL("image/jpeg", 0.94);
+    setPhoto(raw);
+    stopCamera();
+    setScreen("processing");
+
+    const frame = new Image();
+    frame.crossOrigin = "anonymous";
+    frame.src = FRAME_URL;
+
+    frame.onload = () => {
+      ctx.drawImage(frame, 0, 0, outputWidth, outputHeight);
+      const merged = canvas.toDataURL("image/png");
+      setFinalPhoto(merged);
+      setTimeout(() => setScreen("resultado"), 1500);
+    };
+
+    frame.onerror = () => {
+      setFinalPhoto(raw);
+      setTimeout(() => setScreen("resultado"), 1500);
+    };
+  }
+
+  function downloadPhoto() {
+    const link = document.createElement("a");
+    link.href = finalPhoto;
+    link.download = "foto-na-onda.png";
+    link.click();
+  }
+
+  async function sharePhoto() {
+    if (!finalPhoto) return;
+    const blob = await (await fetch(finalPhoto)).blob();
+    const file = new File([blob], "foto-na-onda.png", { type: "image/png" });
+
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({
+        title: "Foto na Onda",
+        text: "Eu entrei na Onda da Produtividade! @wavesplusoficial",
+        files: [file],
+      });
       return;
     }
 
-    setScreen("moldura");
+    downloadPhoto();
+    alert("A foto foi baixada. Agora é só publicar e marcar @wavesplusoficial.");
+  }
+
+  function resetApp() {
+    setForm(FORM_INITIAL);
+    setPhoto("");
+    setFinalPhoto("");
+    setScreen("splash");
   }
 
   return (
     <main className="app-shell">
-      <div className="ambient ambient-one" />
-      <div className="ambient ambient-two" />
+      <div className="glow glow-one" />
+      <div className="glow glow-two" />
 
-      <section className="phone">
+      <section className="device">
         {screen === "splash" && (
-          <div className="screen splash-screen">
+          <Screen className="splash">
             <Brand />
-
-            <div className="hero-wave">
-              <div className="hero-wave-ring" />
-            </div>
-
-            <div className="splash-content">
+            <div className="wave-orbit" />
+            <div className="splash-copy">
               <p className="eyebrow">EXPOCONSTRUIR 2026</p>
-
               <h1>
                 FOTO NA
                 <strong>ONDA</strong>
                 <span>DA PRODUTIVIDADE</span>
               </h1>
-
-              <p className="description">
-                Entre na onda, tire sua foto e mostre que você faz parte do
-                movimento.
+              <p>
+                Entre na onda, tire sua foto e mostre que você faz parte do movimento.
               </p>
-
-              <button
-                className="primary-button"
-                onClick={() => setScreen("cadastro")}
-              >
-                Começar
-                <ArrowRight size={20} />
-              </button>
+              <Primary onClick={() => setScreen("cadastro")}>
+                Começar <ArrowRight size={20} />
+              </Primary>
             </div>
-          </div>
+          </Screen>
         )}
 
         {screen === "cadastro" && (
-          <div className="screen form-screen">
+          <Screen>
             <Brand />
+            <Header eyebrow="CADASTRO RÁPIDO" title="Entre na Onda">
+              Preencha seus dados para continuar.
+            </Header>
 
-            <header className="screen-header">
-              <p className="eyebrow">CADASTRO RÁPIDO</p>
-              <h2>Entre na Onda</h2>
-              <p>Preencha seus dados para continuar.</p>
-            </header>
-
-            <form className="lead-form" onSubmit={submitForm}>
-              <Field icon={<User size={18} />}>
-                <input
-                  name="nome"
-                  value={form.nome}
-                  onChange={updateField}
-                  placeholder="Nome completo"
-                  required
-                />
-              </Field>
-
-              <Field icon={<Smartphone size={18} />}>
-                <input
-                  name="whatsapp"
-                  value={form.whatsapp}
-                  onChange={updateField}
-                  placeholder="WhatsApp"
-                  inputMode="tel"
-                  required
-                />
-              </Field>
-
-              <Field icon={<Mail size={18} />}>
-                <input
-                  name="email"
-                  value={form.email}
-                  onChange={updateField}
-                  placeholder="E-mail"
-                  inputMode="email"
-                  required
-                />
-              </Field>
-
-              <Field icon={<User size={18} />}>
-                <input
-                  name="empresa"
-                  value={form.empresa}
-                  onChange={updateField}
-                  placeholder="Empresa"
-                />
-              </Field>
-
-              <Field icon={<MapPin size={18} />}>
-                <input
-                  name="cidade"
-                  value={form.cidade}
-                  onChange={updateField}
-                  placeholder="Cidade"
-                  required
-                />
-              </Field>
-
-              <Field icon={<MapPin size={18} />}>
-                <input
-                  name="estado"
-                  value={form.estado}
-                  onChange={updateField}
-                  placeholder="Estado"
-                  required
-                />
-              </Field>
+            <form className="form" onSubmit={submitRegistration}>
+              <Field icon={<User size={18} />} name="nome" placeholder="Nome completo" value={form.nome} onChange={updateField} required />
+              <Field icon={<Smartphone size={18} />} name="whatsapp" placeholder="WhatsApp" value={form.whatsapp} onChange={updateField} required inputMode="tel" />
+              <Field icon={<Mail size={18} />} name="email" placeholder="E-mail" value={form.email} onChange={updateField} inputMode="email" />
+              <Field icon={<Building2 size={18} />} name="empresa" placeholder="Empresa" value={form.empresa} onChange={updateField} />
+              <Field icon={<MapPin size={18} />} name="cidade" placeholder="Cidade" value={form.cidade} onChange={updateField} required />
+              <Field icon={<MapPin size={18} />} name="estado" placeholder="Estado" value={form.estado} onChange={updateField} required />
 
               <label className="privacy">
-                <input
-                  type="checkbox"
-                  name="lgpd"
-                  checked={form.lgpd}
-                  onChange={updateField}
-                />
-
-                <span>
-                  Li e aceito os termos de uso e a política de privacidade.
-                </span>
+                <input type="checkbox" name="lgpd" checked={form.lgpd} onChange={updateField} />
+                <span>Autorizo o uso dos meus dados para esta experiência e contatos da Waves Plus/CBS.</span>
               </label>
 
-              <button className="primary-button" type="submit">
-                Entrar na onda
-                <ArrowRight size={20} />
-              </button>
+              <Primary type="submit">
+                Entrar na onda <ArrowRight size={20} />
+              </Primary>
             </form>
-          </div>
+          </Screen>
         )}
 
         {screen === "moldura" && (
-          <div className="screen frame-screen">
+          <Screen>
             <Brand />
+            <Header eyebrow="MOLDURA OFICIAL" title="Sua foto vai ficar assim">
+              A moldura será aplicada automaticamente.
+            </Header>
 
-            <header className="screen-header centered">
-              <p className="eyebrow">MOLDURA OFICIAL</p>
-              <h2>Escolha sua moldura</h2>
-              <p>Esta será aplicada à sua foto.</p>
-            </header>
-
-            <div className="frame-preview">
-              <div className="frame-placeholder">
-                <div className="frame-wave" />
-
-                <div className="frame-copy">
-                  <Instagram size={17} />
-                  <span>@wavesplusoficial</span>
-                </div>
-
-                <strong>ENTRE NA ONDA DA PRODUTIVIDADE!</strong>
-
-                <div className="selected-badge">
-                  <Check size={18} />
-                </div>
-              </div>
+            <div className="frame-card selected">
+              <img src={FRAME_URL} alt="Moldura oficial Foto na Onda" />
+              <span className="selected-dot"><Check size={17} /></span>
             </div>
 
-            <button
-              className="primary-button"
-              onClick={() => setScreen("camera")}
-            >
-              Continuar
-              <ArrowRight size={20} />
-            </button>
-          </div>
+            <Primary onClick={() => setScreen("camera")}>
+              Continuar <ArrowRight size={20} />
+            </Primary>
+          </Screen>
         )}
 
         {screen === "camera" && (
-          <div className="screen camera-screen">
-            <Brand />
-
-            <div className="camera-preview">
-              <div className="camera-message">
-                <Camera size={38} />
-                <h2>A câmera entra aqui</h2>
-                <p>
-                  Na próxima etapa vamos ligar a câmera real do seu celular.
-                </p>
-              </div>
-
-              <div className="camera-wave" />
-
-              <div className="camera-profile">
-                <Instagram size={17} />
-                @wavesplusoficial
-              </div>
+          <Screen className="camera-screen">
+            <div className="camera-stage">
+              <video ref={videoRef} playsInline muted />
+              <img className="camera-overlay" src={FRAME_URL} alt="" />
+              {cameraError && <div className="camera-error">{cameraError}</div>}
             </div>
 
-            <button
-              className="capture-button"
-              aria-label="Tirar foto"
-              onClick={() => setScreen("processing")}
-            />
-
-            <button
-              className="secondary-button"
-              onClick={() => setScreen("moldura")}
-            >
-              Voltar
-            </button>
-          </div>
+            <p className="camera-hint">Centralize o rosto e sorria. 😄</p>
+            <button className="capture" aria-label="Tirar foto" onClick={capturePhoto} />
+            <button className="text-button" onClick={() => setScreen("moldura")}>Voltar</button>
+            <canvas ref={canvasRef} hidden />
+          </Screen>
         )}
 
         {screen === "processing" && (
-          <div className="screen processing-screen">
-            <div className="processing-wave" />
-
+          <Screen className="processing">
+            <div className="spinner-wave" />
             <h2>Preparando sua foto...</h2>
-
-            <p>Estamos juntando a imagem com a moldura oficial.</p>
-
-            <div className="progress">
-              <span />
-            </div>
-
-            <button
-              className="primary-button"
-              onClick={() => setScreen("resultado")}
-            >
-              Ver resultado
-            </button>
-          </div>
+            <p>Estamos aplicando a moldura oficial.</p>
+            <div className="progress"><span /></div>
+          </Screen>
         )}
 
         {screen === "resultado" && (
-          <div className="screen result-screen">
+          <Screen>
             <Brand />
+            <Header eyebrow="FOTO PRONTA" title="Sua foto ficou pronta">
+              Agora é só baixar ou compartilhar.
+            </Header>
 
-            <header className="screen-header centered">
-              <p className="eyebrow">FOTO PRONTA</p>
-              <h2>Sua foto ficou incrível!</h2>
-            </header>
-
-            <div className="result-photo">
-              <div className="result-wave" />
-              <span>Sua foto aparecerá aqui</span>
+            <div className="result-card">
+              <img src={finalPhoto || photo} alt="Foto final" />
             </div>
 
             <div className="button-grid">
-              <button className="primary-button">
-                <Download size={19} />
-                Baixar
-              </button>
-
-              <button
-                className="primary-button"
-                onClick={() => setScreen("compartilhar")}
-              >
-                <Share2 size={19} />
-                Compartilhar
-              </button>
+              <Primary onClick={downloadPhoto}><Download size={19} /> Baixar</Primary>
+              <Primary onClick={sharePhoto}><Share2 size={19} /> Compartilhar</Primary>
             </div>
 
-            <button
-              className="secondary-button"
-              onClick={() => setScreen("camera")}
-            >
-              <RotateCcw size={18} />
-              Tirar outra
+            <button className="secondary" onClick={() => setScreen("camera")}>
+              <RotateCcw size={18} /> Tirar outra
             </button>
-          </div>
-        )}
 
-        {screen === "compartilhar" && (
-          <div className="screen share-screen">
-            <Brand />
-
-            <header className="screen-header centered">
-              <p className="eyebrow">COMPARTILHE</p>
-              <h2>Mostre que você entrou na onda</h2>
-            </header>
-
-            <div className="share-list">
-              <button>
-                <Instagram />
-                Instagram Stories
-              </button>
-
-              <button>
-                <Smartphone />
-                WhatsApp
-              </button>
-
-              <button>
-                <Share2 />
-                Mais opções
-              </button>
-            </div>
-
-            <button
-              className="primary-button"
-              onClick={() => setScreen("obrigado")}
-            >
+            <button className="text-button" onClick={() => setScreen("obrigado")}>
               Finalizar
-              <ArrowRight size={20} />
             </button>
-          </div>
+          </Screen>
         )}
 
         {screen === "obrigado" && (
-          <div className="screen thanks-screen">
-            <div className="check-circle">
-              <Check size={45} />
-            </div>
-
+          <Screen className="thanks">
+            <div className="check"><Check size={44} /></div>
             <p className="eyebrow">TUDO CERTO</p>
-
             <h2>Obrigado!</h2>
-
-            <p>
-              Você faz parte da onda que está construindo o futuro.
-            </p>
-
-            <strong>@wavesplusoficial</strong>
-
-            <button
-              className="primary-button"
-              onClick={() => {
-                setForm(initialForm);
-                setScreen("splash");
-              }}
-            >
-              Voltar ao início
-            </button>
-          </div>
+            <p>Você faz parte da Onda da Produtividade.</p>
+            <strong><Instagram size={18} /> @wavesplusoficial</strong>
+            <Primary onClick={resetApp}>Voltar ao início</Primary>
+          </Screen>
         )}
       </section>
     </main>
   );
 }
 
-function Field({ icon, children }) {
+function Screen({ children, className = "" }) {
+  return <div className={`screen ${className}`}>{children}</div>;
+}
+
+function Header({ eyebrow, title, children }) {
+  return (
+    <header className="header">
+      <p className="eyebrow">{eyebrow}</p>
+      <h2>{title}</h2>
+      <p>{children}</p>
+    </header>
+  );
+}
+
+function Field({ icon, ...props }) {
   return (
     <label className="field">
       {icon}
-      {children}
+      <input {...props} />
     </label>
   );
+}
+
+function Primary({ children, ...props }) {
+  return <button className="primary" {...props}>{children}</button>;
 }
 
 function Brand() {
   return (
     <div className="brand">
-      <div className="fake-logo waves-logo">WAVES PLUS</div>
-      <span />
-      <div className="fake-logo expo-logo">ExpoConstruir</div>
-      <span />
-      <div className="fake-logo cbs-logo">CBS</div>
+      <div className="brand-placeholder waves">WAVES PLUS</div>
+      <div className="divider" />
+      <div className="brand-placeholder expo">EXPOCONSTRUIR</div>
+      <div className="divider" />
+      <div className="brand-placeholder cbs">CBS</div>
     </div>
   );
 }
-
-export default App;
