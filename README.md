@@ -1,37 +1,16 @@
-# Foto na Onda V4 — mockup final
+# Foto na Onda V4.1 — mockup final sem cache
 
-Versão final preparada para GitHub e Vercel.
+Esta versão força o uso do mockup final por um nome novo:
 
-## Funcionalidades mantidas
+`public/mockup-final-v41.png`
 
-- câmera traseira nativa;
-- escolha pela galeria;
-- arrastar a foto;
-- aumentar e diminuir;
-- centralizar;
-- cadastro;
-- salvamento no Google Drive;
-- registro na Planilha Google;
-- compartilhamento;
-- download.
-
-## Mockup final
-
-Arquivo:
-
-`public/mockup-final.png`
-
-O aplicativo agora carrega o mockup diretamente do próprio projeto:
+No código:
 
 ```js
-const MOCKUP_URL = "/mockup-final.png";
+const MOCKUP_URL = "/mockup-final-v41.png?v=41";
 ```
 
-Isso elimina a dependência do Google Drive e problemas de cache.
+Também remove possíveis arquivos antigos de mockup/moldura da pasta `public`.
 
-## Publicação
-
-1. Extraia o ZIP.
-2. Envie todo o conteúdo para o repositório no GitHub.
-3. Confirme o commit.
-4. Aguarde o Vercel concluir o novo deploy.
+Após enviar ao GitHub, confira se o Vercel publicou o commit mais recente no projeto
+`foto-na-onda-2j1g`.
