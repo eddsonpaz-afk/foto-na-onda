@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 const API_URL =
   "https://script.google.com/macros/s/AKfycbyZc2qEJiNStcTcl_BKemVvHrFRFydLdCgI58doZyNsJQcSClXekFGkOCKCQ0zINyRfvQ/exec";
 
-const MOCKUP_URL = "/api/mockup";
+const MOCKUP_URL = "/mockup-final.png";
 
 const INITIAL_FORM = {
   nome: "",
